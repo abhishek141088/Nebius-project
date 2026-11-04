@@ -1,0 +1,22 @@
+.DS_Store
+
+# Secrets - never commit
+*secret*
+*.env
+.envrc
+candidate-soperator.env
+*.pem
+*.key
+
+# Terraform state and local artifacts
+**/.terraform/
+**/.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
