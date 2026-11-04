@@ -3,7 +3,6 @@
 # Secrets - never commit
 *secret*
 *.env
-.envrc
 candidate-soperator.env
 *.pem
 *.key

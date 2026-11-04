@@ -571,7 +571,7 @@ soperator_notifier = {
   enabled = false
 }
 
-public_o11y_enabled = true
+public_o11y_enabled = false
 
 # Existing public o11y logs projects are not moved between regions unless this is explicitly enabled.
 # ---
@@ -605,7 +605,7 @@ accounting_enabled = true
 # Whether to enable Backups. Choose from 'auto', 'force_enable', 'force_disable'.
 # 'auto' turns backups on for jails with max size less than 12 TB and is a default option.
 # ---
-backups_enabled = "auto"
+backups_enabled = "force_disable"
 
 # Password to be used for encrypting jail backups.
 # ---
