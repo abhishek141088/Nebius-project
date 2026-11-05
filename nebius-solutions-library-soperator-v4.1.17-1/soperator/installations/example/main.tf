@@ -562,9 +562,13 @@ module "slurm" {
       ],
       nodeset.features != null ? nodeset.features : []
     )
-    cpu_topology                             = module.resources.cpu_topology_by_platform[nodeset.resource.platform][nodeset.resource.preset]
-    gres_name                                = lookup(module.resources.gres_name_by_platform, nodeset.resource.platform, null)
-    gres_config                              = lookup(module.resources.gres_config_by_platform, nodeset.resource.platform, null)
+    cpu_topology = module.resources.cpu_topology_by_platform[nodeset.resource.platform][nodeset.resource.preset]
+    gres_name    = lookup(module.resources.gres_name_by_platform, nodeset.resource.platform, null)
+    gres_config = lookup(
+      lookup(module.resources.gres_config_by_platform_preset, nodeset.resource.platform, {}),
+      nodeset.resource.preset,
+      lookup(module.resources.gres_config_by_platform, nodeset.resource.platform, null)
+    )
     create_partition                         = nodeset.create_partition != null ? nodeset.create_partition : false
     ephemeral_nodes                          = nodeset.ephemeral_nodes
     persistent_volume_claim_retention_policy = nodeset.persistent_volume_claim_retention_policy

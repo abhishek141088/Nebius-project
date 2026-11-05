@@ -60,3 +60,8 @@ output "gres_config_by_platform" {
   description = "GRes config by platform."
   value       = local.gres_config_by_platforms
 }
+
+output "gres_config_by_platform_preset" {
+  description = "GRes config overrides by platform and preset, for presets (e.g. single-GPU) where the platform-level default above doesn't apply."
+  value       = local.gres_config_by_platform_preset
+}

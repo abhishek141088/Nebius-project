@@ -73,4 +73,21 @@ locals {
       "AutoDetect=off Name=gpu Type=${local.gres_by_platforms[local.platforms.gpu-gb300]} File=/dev/nvidia0 Cores=56-111 Links=1,1,1,-1 Flags=nvidia_gpu_env",
     ]
   })
+
+  # gres_config_by_platforms above is keyed by platform only and hardcodes
+  # the 8-GPU preset's NUMA-split topology (8 device files, Cores=0-31 /
+  # 32-63). Single-GPU presets (gpu_cluster_compatible = false in preset.tf)
+  # have exactly one device and no multi-GPU NVLink topology to describe, so
+  # that config is wrong for them: slurmctld fatals with "Invalid GRES data
+  # for gpu, Cores=0-31 (only 16 CPUs are available)" on the 1gpu-16vcpu-200gb
+  # preset. Override by platform+preset for the single-GPU presets we
+  # actually use; anything not listed here falls back to the platform
+  # default above unchanged.
+  gres_config_by_platform_preset = {
+    (local.platforms.gpu-h100-sxm) = {
+      (local.presets.p-1g-16c-200g) = [
+        "AutoDetect=off Name=gpu Type=${local.gres_by_platforms[local.platforms.gpu-h100-sxm]} File=/dev/nvidia0 Cores=0-15 Flags=nvidia_gpu_env",
+      ]
+    }
+  }
 }
