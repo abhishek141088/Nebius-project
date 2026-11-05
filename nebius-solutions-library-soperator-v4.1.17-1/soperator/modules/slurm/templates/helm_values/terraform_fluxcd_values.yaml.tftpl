@@ -544,56 +544,10 @@ resources:
                     memory: ${slurm_cluster.nodes.munge.resources.memory}Gi
                     ephemeralStorage: ${slurm_cluster.nodes.munge.resources.ephemeral_storage}Gi
                 customInitContainers:
-                  # Deliberately NOT named "ensure-jail-virtiofs" (the stock
-                  # name used elsewhere in this file). Confirmed by inspecting
-                  # the live SlurmCluster CR through two prior attempts: (1) a
-                  # second customInitContainers entry alongside the stock
-                  # "ensure-jail-virtiofs" one was silently dropped -- the Helm
-                  # values had it, the CR didn't; (2) keeping one entry named
-                  # "ensure-jail-virtiofs" but changing its command/volumeMounts
-                  # was also reverted back to the chart's hardcoded jail-grep-check
-                  # on every reconcile. Both point to the soperator-fluxcd chart
-                  # (not vendored in this repo, so not something we can patch
-                  # directly) truncating this list to one entry *and* hardcoding
-                  # the command/mounts for whichever entry is named exactly
-                  # "ensure-jail-virtiofs", regardless of content. A single,
-                  # differently-named entry is the one shape that survives
-                  # chart rendering untouched -- verified directly against the
-                  # live SlurmCluster CR after this exact change went through
-                  # terraform apply (not just a live kubectl patch).
-                  #
-                  # This replaces (rather than adds to) the stock jail-virtiofs
-                  # check, folding the same grep check into its command, so we
-                  # still get that sanity check plus our own fix below.
-                  #
-                  # Pre-creating 5 files is for a separate issue: on a
-                  # genuinely first-ever boot (empty spool volume), this Slurm
-                  # build (25.11.8) fatals instead of starting fresh: "fatal:
-                  # No Assoc usage file (/var/spool/slurmctld/assoc_usage) to
-                  # recover". A plain `touch` (0 bytes) worked in two manual
-                  # tests but then failed differently on a real apply --
-                  # "Failed to mmap file ..., Invalid argument" -- mmap() of a
-                  # zero-length region is invalid per POSIX, so a 0-byte file
-                  # is apparently not reliably handled before that point.
-                  # Writing one byte avoids that case outright. Only touches
-                  # files that are missing or still empty (-s check), so it
-                  # never clobbers real usage data slurmctld has since
-                  # written -- this only matters for the very first boot.
-                  - name: ensure-jail-virtiofs-and-slurmctld-state
+                  - name: ensure-jail-virtiofs
                     image: cr.nebius.cloud/soperator-proxy-docker-io/library/busybox@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
-                    volumeMounts:
-                      - { name: jail, mountPath: /volume-mount }
-                      - { name: controller-spool, mountPath: /spool-mount }
-                    command:
-                      - "sh"
-                      - "-c"
-                      - |
-                        for f in assoc_usage qos_usage priority_last_decay_ran node_state job_state; do
-                          if [ ! -s "/spool-mount/$f" ]; then
-                            printf '\0' > "/spool-mount/$f"
-                          fi
-                        done
-                        grep " /volume-mount virtiofs " /proc/mounts
+                    volumeMounts: [{ name: jail, mountPath: /volume-mount }]
+                    command: ["grep", " /volume-mount virtiofs ", "/proc/mounts"]
                 volumes:
                   spool:
                     %{~ if slurm_cluster.controller_state_on_filestore ~}
