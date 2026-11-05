@@ -85,8 +85,12 @@ locals {
   # default above unchanged.
   gres_config_by_platform_preset = {
     (local.platforms.gpu-h100-sxm) = {
+      # Cores= is physical-core-indexed, not vCPU/thread-indexed -- confirmed
+      # against the 8-GPU preset above: 128 vCPU / 2 threads-per-core = 64
+      # physical cores, matching its Cores=0-31 + Cores=32-63 (64 total).
+      # This preset: 16 vCPU / 2 threads-per-core = 8 physical cores -> 0-7.
       (local.presets.p-1g-16c-200g) = [
-        "AutoDetect=off Name=gpu Type=${local.gres_by_platforms[local.platforms.gpu-h100-sxm]} File=/dev/nvidia0 Cores=0-15 Flags=nvidia_gpu_env",
+        "AutoDetect=off Name=gpu Type=${local.gres_by_platforms[local.platforms.gpu-h100-sxm]} File=/dev/nvidia0 Cores=0-7 Flags=nvidia_gpu_env",
       ]
     }
   }
