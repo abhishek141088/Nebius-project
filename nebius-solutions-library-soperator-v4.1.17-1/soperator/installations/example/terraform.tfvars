@@ -7,10 +7,10 @@
 #----------------------------------------------------------------------------------------------------------------------#
 
 # Name of the company. It is used for context name of the cluster in .kubeconfig file.
-company_name = ""
+company_name = "abishek-jain"
 
 # Whether the cluster is production or not.
-production = true
+production = false
 
 # Follow the installation guide and put IAM merge request URL here.
 # Required if production = true.
@@ -68,8 +68,10 @@ filestore_controller_spool = {
 # Or use existing filestore.
 # ---
 filestore_jail = {
-  existing = {
-    id = "computefilesystem-<YOUR-FILESTORE-ID>"
+  spec = {
+    size_gibibytes       = 2048
+    block_size_kibibytes = 4
+    forbid_deletion      = false
   }
 }
 
@@ -91,8 +93,10 @@ filestore_jail = {
 filestore_jail_submounts = [{
   name       = "data"
   mount_path = "/mnt/data"
-  existing = {
-    id = "computefilesystem-<YOUR-FILESTORE-ID>"
+  spec = {
+    size_gibibytes       = 2048
+    block_size_kibibytes = 4
+    forbid_deletion      = false
   }
 }]
 
@@ -473,7 +477,7 @@ slurm_sssd_ldap_ca_config_map_ref_name = ""
 # Authorized keys accepted for connecting to Slurm login nodes via SSH as 'root' user.
 # ---
 slurm_login_ssh_root_public_keys = [
-  "",
+  "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJWsH4CNbE8uaJB+NcjanKnLtlt0KSZIRmjvvDfIRvCR abishek-jain-soperator-demo",
 ]
 
 # endregion Login
@@ -503,7 +507,7 @@ slurm_exporter_enabled = true
 # - "dev" - to be used for Soperator development clusters.
 # - "essential" - skip most of checks and run only essential ones. Don't use in production.
 # ---
-active_checks_scope = ""
+active_checks_scope = "dev"
 
 # endregion ActiveChecks
 
