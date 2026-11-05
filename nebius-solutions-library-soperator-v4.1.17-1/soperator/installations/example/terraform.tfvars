@@ -241,8 +241,8 @@ slurm_partition_config_type = "default"
 # of the cluster.
 # ---
 slurm_nodeset_system = {
-  min_size = 3
-  max_size = 9
+  min_size = 4
+  max_size = 24
   resource = {
     platform = "cpu-d3"
     preset   = "8vcpu-32gb"
@@ -260,7 +260,7 @@ slurm_nodeset_controller = {
   size = 1
   resource = {
     platform = "cpu-d3"
-    preset   = "16vcpu-64gb"
+    preset   = "4vcpu-16gb"
   }
   boot_disk = {
     type                 = "NETWORK_SSD"
@@ -286,29 +286,28 @@ slurm_nodeset_controller = {
 slurm_nodeset_workers = [
   {
     name = "worker"
-    size = 128
-    # Autoscaling configuration. Set enabled = false to use fixed node count instead.
+    # Sandbox GPU quota cap: 2x H100 total, 1x H100 per node (no InfiniBand
+    # support on this single-GPU preset) -- see gpu_cluster below.
+    size = 2
+    # Fixed node count: quota-capped, so autoscaling would have nothing to
+    # scale into.
     autoscaling = {
-      enabled = true
-      # min_size options:
-      # - null: min=max, no scale-down (default, recommended - saves ~10 min on initial provisioning)
-      #   it can be changed to a number later if needed.
-      # - N: can scale down to N nodes
+      enabled  = false
       min_size = null
     }
     resource = {
       platform = "gpu-h100-sxm"
-      preset   = "8gpu-128vcpu-1600gb"
+      preset   = "1gpu-16vcpu-200gb"
     }
     boot_disk = {
       type                 = "NETWORK_SSD"
       size_gibibytes       = 512
       block_size_kibibytes = 4
     }
-    gpu_cluster = {
-      # id                = "gpucluster-..."
-      infiniband_fabric = ""
-    }
+    # The 1gpu-16vcpu-200gb preset is not gpu_cluster_compatible (no
+    # InfiniBand fabric on a single-GPU node), so gpu_cluster must stay
+    # unset -- see soperator/modules/k8s/gpu_fabric_validation.tf.
+    gpu_cluster = null
     # Change to preemptible = {} in case you want to use preemptible nodes
     preemptible = null
     # Use reservation_policy to leverage compute reservations (capacity blocks)
@@ -396,12 +395,12 @@ use_preinstalled_gpu_drivers = true
 # node group so login pods run on worker nodes instead.
 # ---
 slurm_nodeset_login = {
-  size = 2
+  size = 1
   # Optional. For GB300, this is set to false internally so login pods run on worker nodes.
   # node_group_enabled = true
   resource = {
     platform = "cpu-d3"
-    preset   = "32vcpu-128gb"
+    preset   = "16vcpu-64gb"
   }
   boot_disk = {
     type                 = "NETWORK_SSD"
@@ -432,7 +431,7 @@ slurm_nodeset_nfs = {
   size = 1
   resource = {
     platform = "cpu-d3"
-    preset   = "32vcpu-128gb"
+    preset   = "4vcpu-16gb"
   }
   boot_disk = {
     type                 = "NETWORK_SSD"
