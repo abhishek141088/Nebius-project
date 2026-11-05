@@ -566,17 +566,19 @@ resources:
                   # check, folding the same grep check into its command, so we
                   # still get that sanity check plus our own fix below.
                   #
-                  # The touch of 5 files is for a separate issue: on a
+                  # Pre-creating 5 files is for a separate issue: on a
                   # genuinely first-ever boot (empty spool volume), this Slurm
                   # build (25.11.8) fatals instead of starting fresh: "fatal:
                   # No Assoc usage file (/var/spool/slurmctld/assoc_usage) to
-                  # recover". Pre-creating these 5 files empty makes the
-                  # local-state-recovery check succeed trivially (0 bytes to
-                  # recover) instead of hitting that fatal path. Verified
-                  # (three times now, each on a PVC confirmed genuinely fresh):
-                  # once slurmctld has booted successfully once, it rewrites
-                  # these with real content on its own, so this only matters
-                  # for that first boot.
+                  # recover". A plain `touch` (0 bytes) worked in two manual
+                  # tests but then failed differently on a real apply --
+                  # "Failed to mmap file ..., Invalid argument" -- mmap() of a
+                  # zero-length region is invalid per POSIX, so a 0-byte file
+                  # is apparently not reliably handled before that point.
+                  # Writing one byte avoids that case outright. Only touches
+                  # files that are missing or still empty (-s check), so it
+                  # never clobbers real usage data slurmctld has since
+                  # written -- this only matters for the very first boot.
                   - name: ensure-jail-virtiofs-and-slurmctld-state
                     image: cr.nebius.cloud/soperator-proxy-docker-io/library/busybox@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
                     volumeMounts:
@@ -586,12 +588,11 @@ resources:
                       - "sh"
                       - "-c"
                       - |
-                        touch \
-                          /spool-mount/assoc_usage \
-                          /spool-mount/qos_usage \
-                          /spool-mount/priority_last_decay_ran \
-                          /spool-mount/node_state \
-                          /spool-mount/job_state
+                        for f in assoc_usage qos_usage priority_last_decay_ran node_state job_state; do
+                          if [ ! -s "/spool-mount/$f" ]; then
+                            printf '\0' > "/spool-mount/$f"
+                          fi
+                        done
                         grep " /volume-mount virtiofs " /proc/mounts
                 volumes:
                   spool:
