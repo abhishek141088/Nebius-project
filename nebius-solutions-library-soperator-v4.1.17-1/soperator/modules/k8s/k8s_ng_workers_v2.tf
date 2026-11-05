@@ -134,6 +134,7 @@ resource "nebius_mk8s_v1_node_group" "worker_v2" {
         (local.node_group_gpu_present_v2.worker[count.index] ? module.labels.label_nebius_gpu : {}),
         local.node_group_nvl_instance_group_label_v2.worker[count.index],
         module.labels.label_exclude_from_external_lb,
+        local.node_group_topology_fallback_label_v2.worker[count.index],
       )
     }
     taints = local.node_group_gpu_present_v2.worker[count.index] ? [{

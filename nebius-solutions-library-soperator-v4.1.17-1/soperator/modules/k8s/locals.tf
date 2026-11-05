@@ -60,6 +60,29 @@ locals {
     ]
   }
 
+  # GPU presets that don't support a gpu_cluster block (gpu_cluster_compatible == false,
+  # see gpu_fabric_validation.tf) have no InfiniBand fabric, so Nebius never attaches the
+  # fabric-derived node labels that Soperator's topology reconciler reads
+  # (topologyconf.slurm.nebius.ai/tier-1). Without that label the reconciler's own
+  # node predicate drops the node entirely, so the topology-node-labels ConfigMap it
+  # maintains is never populated for these nodes - workers then hang forever waiting
+  # for topology data that was never going to arrive.
+  #
+  # Fix: set a static tier-1 label ourselves on exactly these nodes, so the stock
+  # reconciler (unmodified) does the rest. "unknown" matches the single static switch
+  # name the chart already renders into topology.conf for non-fabric nodes
+  # (SwitchName=unknown), so the dynamically-registered topology stays consistent with
+  # the statically-rendered one.
+  node_group_topology_fallback_label_v2 = {
+    worker = [
+      for i, worker in var.node_group_workers_v2 :
+      (local.node_group_gpu_present_v2.worker[i] && !local.node_group_gpu_cluster_compatible_v2.worker[i]
+        ? { "topologyconf.slurm.nebius.ai/tier-1" = "unknown" }
+        : {}
+      )
+    ]
+  }
+
   # Normalize optional NVLink IDs to strings. "" means the worker should not get
   # an nvlink block or NVLink label.
   node_group_nvl_instance_group_id_v2 = {
