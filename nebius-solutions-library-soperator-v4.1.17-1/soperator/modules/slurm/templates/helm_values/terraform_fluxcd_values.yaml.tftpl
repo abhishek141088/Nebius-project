@@ -544,32 +544,43 @@ resources:
                     memory: ${slurm_cluster.nodes.munge.resources.memory}Gi
                     ephemeralStorage: ${slurm_cluster.nodes.munge.resources.ephemeral_storage}Gi
                 customInitContainers:
+                  # ensure-jail-virtiofs's own job (grep-check the jail mount) is
+                  # combined into this single init container's command, rather
+                  # than adding a second customInitContainers entry, because the
+                  # soperator-fluxcd chart silently drops any entry past the
+                  # first one when it renders the SlurmCluster CR -- confirmed
+                  # by inspecting the CR directly after a second-entry attempt:
+                  # the Helm values had it, the CR didn't. This chart-internal
+                  # behavior is outside what we can see/fix (chart isn't
+                  # vendored in this repo) -- flagged to Nebius.
+                  #
+                  # The touch of 5 files is for a separate issue: on a
+                  # genuinely first-ever boot (empty spool volume), this Slurm
+                  # build (25.11.8) fatals instead of starting fresh: "fatal:
+                  # No Assoc usage file (/var/spool/slurmctld/assoc_usage) to
+                  # recover". Pre-creating these 5 files empty makes the
+                  # local-state-recovery check succeed trivially (0 bytes to
+                  # recover) instead of hitting that fatal path. Verified
+                  # (twice, the second time on a PVC confirmed genuinely
+                  # fresh): once slurmctld has booted successfully once, it
+                  # rewrites these with real content on its own, so this only
+                  # matters for that first boot.
                   - name: ensure-jail-virtiofs
                     image: cr.nebius.cloud/soperator-proxy-docker-io/library/busybox@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
-                    volumeMounts: [{ name: jail, mountPath: /volume-mount }]
-                    command: ["grep", " /volume-mount virtiofs ", "/proc/mounts"]
-                  # On a genuinely first-ever boot (empty spool volume), this
-                  # Slurm build (25.11.8) fatals instead of starting fresh:
-                  # "fatal: No Assoc usage file (/var/spool/slurmctld/assoc_usage)
-                  # to recover". Pre-creating these 5 files empty makes the
-                  # local-state-recovery check succeed trivially (0 bytes to
-                  # recover) instead of hitting that fatal path. Verified: once
-                  # slurmctld has booted successfully once, it rewrites these
-                  # files with real content on its own; this only matters for
-                  # that first boot.
-                  - name: ensure-slurmctld-state-files
-                    image: cr.nebius.cloud/soperator-proxy-docker-io/library/busybox@sha256:fd7dc98638c8e305f4dc34e979f1c0fdfdcaeb0fbf8fcff77ae834b6da3d7e6e
-                    volumeMounts: [{ name: controller-spool, mountPath: /volume-mount }]
+                    volumeMounts:
+                      - { name: jail, mountPath: /volume-mount }
+                      - { name: controller-spool, mountPath: /spool-mount }
                     command:
                       - "sh"
                       - "-c"
                       - |
                         touch \
-                          /volume-mount/assoc_usage \
-                          /volume-mount/qos_usage \
-                          /volume-mount/priority_last_decay_ran \
-                          /volume-mount/node_state \
-                          /volume-mount/job_state
+                          /spool-mount/assoc_usage \
+                          /spool-mount/qos_usage \
+                          /spool-mount/priority_last_decay_ran \
+                          /spool-mount/node_state \
+                          /spool-mount/job_state
+                        grep " /volume-mount virtiofs " /proc/mounts
                 volumes:
                   spool:
                     %{~ if slurm_cluster.controller_state_on_filestore ~}
