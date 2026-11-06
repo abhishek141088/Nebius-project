@@ -1,0 +1,4 @@
+JobID|JobName|State|ExitCode|Start|End|Elapsed|NNodes|NTasks|AllocTRES|NodeList
+55|lora-sft|COMPLETED|0:0|2026-11-05T21:38:28|2026-11-05T21:43:37|00:05:09|2||billing=8,cpu=8,gres/gpu=2,mem=352G,node=2|worker-[0-1]
+55.batch|batch|COMPLETED|0:0|2026-11-05T21:38:28|2026-11-05T21:43:37|00:05:09|1|1|cpu=4,gres/gpu=1,mem=176G,node=1|worker-0
+55.0|bash|COMPLETED|0:0|2026-11-05T21:38:29|2026-11-05T21:43:37|00:05:08|2|2|cpu=8,gres/gpu=2,mem=352G,node=2|worker-[0-1]
