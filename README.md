@@ -280,7 +280,7 @@ Average between the first and last non-zero sample:
 awk '!/^#/{n++; v[n]=$4; if($4>0){if(!f)f=n; l=n}} END{for(i=f;i<=l;i++)s+=v[i]; print s/(l-f+1)}' /mnt/data/assignment/monitoring/gpu_util_worker-0.log
 ```
 
-Reference for job 55: about 90% on each GPU over that window, and 69.5% over the whole job including model loading. Inference utilization was not measured.
+Reference for job 55: about 90% on each GPU over that window (89.9% on worker-0, 90.2% on worker-1), and 69.5% over the whole job including model loading. Inference utilization was not measured.
 
 ## Step 13. Task 3: evaluate the base and fine-tuned models
 

@@ -62,7 +62,8 @@ a **shared, non-job-namespaced** path that later training runs overwrite; the
 copy, and are the ones referenced here.)
 
 Recomputed from these exact files: average SM utilization during the active training
-window was **89.9% (worker-0)** and **89.0% (worker-1)** — both over the 80% bonus
+window (first to last non-zero sample) was **89.9% (worker-0)** and **90.2% (worker-1)**,
+about 90% on each; the whole-job average including model loading is 69.5% — both over the 80% bonus
 target, though per the task description this is a separate bonus, not part of the core
 Task 1 demonstration.
 
