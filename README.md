@@ -4,11 +4,7 @@ This repo deploys a Slurm-on-Kubernetes cluster (Soperator 4.1.17) on Nebius wit
 
 This guide lists every step in order so that a person or an AI agent can repeat the work. Each step says whether it was **validated** (run on the live cluster) or **reconstructed** (written afterwards from logs and not re-run).
 
-Related documents:
-
-- `CHANGES.md`: what was changed and why, corrections, runbook.
-- `ARCHITECTURE.svg`: architecture diagram.
-- `assignment/Evidence/Task1/README.md`: evidence for the submitted training run (job 55).
+Related document: `assignment/Evidence/Task1/README.md` has the evidence for the submitted training run (job 55).
 
 ## Rules for anyone repeating this, including AI agents
 
@@ -134,8 +130,6 @@ Expected: every HelmRelease `Ready`, and `controller-0`, `login-0`, `worker-0`, 
 2. Patch the `controller-0` container command to add `-i` to `slurmctld` and let it start.
 3. Wait at least 5 minutes so the first periodic state save happens.
 4. Scale the operator back to 1. It restores the stock command, which now starts normally.
-
-See `CHANGES.md` section 7 for details.
 
 ## Step 5. Give the workers topology data (manual, required)
 
@@ -363,7 +357,7 @@ Decommission the cluster only when it is no longer needed for a demo. `terraform
 ## Known gaps
 
 - A clean destroy-and-apply has not been tested, and steps 4 and 5 are manual.
-- The topology label fix and a guard against a stale `clustername` file are proposed in `CHANGES.md` section 8 but not applied.
+- The topology label fix and a guard against a stale `clustername` file are identified but not applied.
 - Steps 13 and 14 are reconstructed, not re-run.
 - Model, dataset and container image revisions are not pinned.
 - Training does not checkpoint (`save_strategy="no"`).

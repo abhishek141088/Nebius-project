@@ -20,3 +20,10 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 **/assets/render/
+
+# Private working documents - kept locally, not published
+/ARCHITECTURE.svg
+/CHANGES.md
+/SLACK_REPORT.md
+/SUBMISSION_EMAIL_DRAFT.md
+/soperator-abishek-jain*.md
